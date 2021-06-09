@@ -5,7 +5,9 @@ import subprocess
 import datetime
 
 from skimage import io
-from scipy.misc import imresize
+# from scipy.misc import imresize
+from PIL import Image
+import numpy as np
 
 from multiprocessing import Pool
 from pytube import YouTube
@@ -58,7 +60,8 @@ def process(data, seq_id, videoname, output_root):
         image = io.imread(pngname)
         if int(image.shape[1]/2) < 500:
             break
-        image = imresize(image, (int(image.shape[0]/2), int(image.shape[1]/2)), interp='bilinear')
+        # image = imresize(image, (int(image.shape[0]/2), int(image.shape[1]/2)), interp='bilinear')
+        image = np.array(Image.fromarray(image).resize([640,360],resample=Image.BILINEAR))
         io.imsave(pngname, image)
         
         # In my case, the same issue happened.
@@ -79,7 +82,7 @@ class DataDownloader:
         print("[INFO] Loading data list ... ",end='')
         self.dataroot = dataroot
         self.list_seqnames = sorted(glob.glob(dataroot + '/*.txt'))
-        self.output_root = './dataset/' + mode + '/'
+        self.output_root = '/media/arun/DATA/LinuxData/ACID_dataset/acid_v1_release/acid/images/' + mode + '/'
         self.mode =  mode
 
         self.isDone = False
@@ -180,18 +183,20 @@ class DataDownloader:
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
-        print("usage: this.py [test or train]")
+        print("usage: this.py [test, validation or train]")
         quit()
 
     if sys.argv[1] == "test":
         mode = "test"
     elif sys.argv[1] == "train":
         mode = "train"
+    elif sys.argv[1] == "validation":
+        mode = "validation"
     else:
         print("invalid mode")
         quit()
 
-    dataroot = "./RealEstate10K/" + mode
+    dataroot = "/media/arun/DATA/LinuxData/ACID_dataset/acid_v1_release/acid/annotations/" + mode
     downloader = DataDownloader(dataroot, mode)
 
     downloader.Show()
